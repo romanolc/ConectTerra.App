@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conecterra - Marketplace do Agro</title>
+    <!-- Fontes -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Icones -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <style>
+        :root {
+            --primary: #66BB6A;
+            --primary-dark: #43A047;
+            --bg-light: #E8F5E9;
+            --white: #FFFFFF;
+            --text-main: #2E3A2E;
+            --text-muted: #6B7280;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            --radius: 16px;
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-light);
+            color: var(--text-main);
+            overflow-x: hidden;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        #app-container {
+            width: 100%;
+            max-width: 450px;
+            background-color: var(--white);
+            min-height: 100vh;
+            position: relative;
+            box-shadow: 0 0 40px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .screen {
+            display: none;
+            flex-direction: column;
+            width: 100%;
+            height: 100vh;
+            animation: fadeIn 0.4s ease-out;
+            padding-bottom: 80px;
+            overflow-y: auto;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- LOGIN --- */
+        #screen-login {
+            padding: 40px 24px;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            height: 100vh;
+            padding-bottom: 0;
+        }
+
+        .logo-area { margin-bottom: 40px; }
+        .logo-icon {
+            background: var(--primary);
+            color: white;
+            width: 80px;
+            height: 80px;
+            border-radius: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px;
+            box-shadow: 0 8px 16px rgba(102, 187, 106, 0.3);
+        }
+        .logo-text { font-size: 28px; font-weight: 800; color: var(--primary-dark); letter-spacing: -1px; }
+
+        .form-group { width: 100%; margin-bottom: 16px; text-align: left; }
+        .form-group label { display: block; font-size: 14px; font-weight: 500; margin-bottom: 6px; color: var(--text-main); }
+        .form-control {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1.5px solid #F3F4F6;
+            background: #F9FAFB;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: var(--transition);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 16px;
+            border-radius: 12px;
+            border: none;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-outline { background: transparent; border: 1.5px solid #E5E7EB; color: var(--text-main); margin-top: 12px; }
+
+        /* --- HOME --- */
+        .header-home { padding: 24px; background: white; position: sticky; top: 0; z-index: 10; }
+        .welcome-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .user-info h2 { font-size: 22px; font-weight: 700; }
+        .notif-badge {
+            width: 44px; height: 44px; border-radius: 12px; background: #F3F4F6;
+            display: flex; align-items: center; justify-content: center; position: relative; cursor: pointer;
+        }
+
+        .search-bar { background: #F3F4F6; border-radius: 14px; padding: 12px 16px; display: flex; align-items: center; gap: 12px; }
+        .search-bar input { background: transparent; border: none; outline: none; width: 100%; font-size: 15px; }
+
+        .section-title { padding: 0 24px; font-size: 18px; font-weight: 700; margin: 20px 0 16px; }
+        .jobs-list { padding: 0 24px; display: flex; flex-direction: column; gap: 16px; }
+        .job-card { background: white; border-radius: var(--radius); padding: 16px; border: 1px solid #F0F0F0; box-shadow: var(--shadow); }
+
+        /* --- MODAIS --- */
+        .overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); z-index: 1000; display: none;
+            justify-content: flex-end; flex-direction: column;
+        }
+        .overlay.active { display: flex; }
+        .modal-content {
+            background: white; padding: 24px; border-radius: 24px 24px 0 0;
+            animation: slideUp 0.3s ease-out; max-height: 80%; overflow-y: auto;
+        }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+        /* --- CHAT --- */
+        .chat-container { flex: 1; display: flex; flex-direction: column; background: #F9FAFB; padding: 20px; gap: 12px; overflow-y: auto; }
+        .msg { max-width: 80%; padding: 12px; border-radius: 14px; font-size: 14px; line-height: 1.4; }
+        .msg-in { background: white; align-self: flex-start; border-bottom-left-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .msg-out { background: var(--primary); color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
+
+        /* --- NAV BAR --- */
+        .bottom-nav {
+            position: absolute; bottom: 0; left: 0; right: 0; height: 75px;
+            background: white; border-top: 1px solid #F3F4F6;
+            display: flex; justify-content: space-around; align-items: center;
+            padding-bottom: 10px; z-index: 100;
+        }
+        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: #9CA3AF; cursor: pointer; }
+        .nav-item.active { color: var(--primary); }
+        .nav-item span { font-size: 11px; font-weight: 500; }
+
+        #toast {
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-100px);
+            background: var(--primary-dark); color: white; padding: 12px 24px; border-radius: 30px;
+            font-weight: 600; z-index: 2000; transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        #toast.show { transform: translateX(-50%) translateY(0); }
+
+        /* --- PERFIL --- */
+        .profile-section { background: #F9FAFB; padding: 16px; border-radius: 12px; margin-bottom: 16px; text-align: left; }
+        .profile-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 700; margin-bottom: 8px; display: block; }
+        .req-item { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 6px; font-size: 14px; color: var(--text-muted); }
+    </style>
+</head>
+<body>
+
+    <div id="toast">Candidatura enviada! 🌱</div>
+
+    <!-- MODAL NOTIFICAÇÕES -->
+    <div id="modal-notif" class="overlay" onclick="closeModal('modal-notif')">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3>Notificações</h3>
+                <i data-lucide="x" onclick="closeModal('modal-notif')" style="cursor:pointer"></i>
+            </div>
+            <div id="notif-list">
+                <p style="color: #999; text-align: center; padding: 20px;">Nenhuma notificação nova.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL FILTRO -->
+    <div id="modal-filter" class="overlay" onclick="closeModal('modal-filter')">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <h3 style="margin-bottom: 20px;">Filtrar Oportunidades</h3>
+            <div style="margin-bottom: 20px;">
+                <p style="font-size: 14px; font-weight: 600; margin-bottom: 10px;">Distância</p>
+                <select id="filter-dist" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ddd;">
+                    <option value="all">Todas as distâncias</option>
+                    <option value="5">Até 5km</option>
+                    <option value="10">Até 10km</option>
+                    <option value="20">Até 20km</option>
+                </select>
+            </div>
+            <button class="btn btn-primary" onclick="applyFilters()">Aplicar Filtros</button>
+        </div>
+    </div>
+
+    <div id="app-container">
+        
+        <!-- TELA 1: LOGIN -->
+        <section id="screen-login" class="screen active">
+            <div class="logo-area">
+                <div class="logo-icon"><i data-lucide="leaf" size="40"></i></div>
+                <h1 class="logo-text">Conecterra</h1>
+                <p style="color: var(--text-muted); margin-top: 8px;">Cultivando conexões, colhendo oportunidades.</p>
+            </div>
+            <div class="form-group">
+                <label>E-mail</label>
+                <input type="email" class="form-control" value="joao.silva@email.com">
+            </div>
+            <div class="form-group" style="margin-bottom: 24px;">
+                <label>Senha</label>
+                <input type="password" class="form-control" value="123456">
+            </div>
+            <button class="btn btn-primary" onclick="navigateTo('screen-home')">Entrar no App</button>
+            <button class="btn btn-outline">Criar conta gratuita</button>
+        </section>
+
+        <!-- TELA 2: HOME -->
+        <section id="screen-home" class="screen">
+            <header class="header-home">
+                <div class="welcome-row">
+                    <div class="user-info"><p>Bem-vindo de volta,</p><h2>João Silva 👋</h2></div>
+                    <div class="notif-badge" onclick="openModal('modal-notif')">
+                        <i data-lucide="bell" size="20"></i>
+                        <div id="notif-dot" style="display:none; position:absolute; top:12px; right:12px; width:8px; height:8px; background: #EF4444; border-radius:50%; border: 2px solid white;"></div>
+                    </div>
+                </div>
+                <div class="search-bar">
+                    <i data-lucide="search" size="18" color="#9CA3AF"></i>
+                    <input type="text" id="main-search" placeholder="Buscar colheitas, fazendas..." onkeyup="searchJobs()">
+                    <i data-lucide="sliders-horizontal" size="18" color="#66BB6A" onclick="openModal('modal-filter')" style="cursor:pointer"></i>
+                </div>
+            </header>
+            <h2 class="section-title">Oportunidades próximas</h2>
+            <div class="jobs-list" id="home-jobs-container"></div>
+        </section>
+
+        <!-- TELA 3: DETALHES -->
+        <section id="screen-details" class="screen">
+            <nav class="back-nav" style="padding: 20px 24px; display: flex; align-items: center; gap: 16px;">
+                <div onclick="navigateTo('screen-home')" style="cursor:pointer; display:flex; align-items:center; gap:8px;">
+                    <i data-lucide="chevron-left" size="24"></i>
+                    <h3>Detalhes da Vaga</h3>
+                </div>
+            </nav>
+            <div style="width: 100%; height: 220px; background: #f0f4f0; display: flex; align-items: center; justify-content: center; color: #ccc;">
+                <i data-lucide="image" size="48"></i>
+            </div>
+            <div class="details-content" style="padding: 24px;">
+                <h1 id="det-title" style="font-size: 24px; margin-bottom: 8px;"></h1>
+                <p id="det-loc" style="font-size: 15px; margin-bottom: 16px; color: var(--text-muted);"></p>
+                <div style="background: #F9FAFB; padding: 16px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                    <div><p style="font-size: 12px; color: var(--text-muted);">Pagamento Diário</p><p id="det-price" style="font-size: 20px; font-weight: 800; color: var(--primary-dark);"></p></div>
+                </div>
+                
+                <h4 style="margin-bottom: 12px;">Descrição</h4>
+                <p id="det-desc" style="color: var(--text-muted); line-height: 1.6; margin-bottom: 24px;"></p>
+                
+                <h4 style="margin-bottom: 12px;">Requisitos Necessários</h4>
+                <div id="det-reqs" style="margin-bottom: 24px;">
+                    <!-- Requisitos inseridos via JS -->
+                </div>
+
+                <button id="btn-candidatar" class="btn btn-primary" onclick="handleApply()">Enviar Candidatura</button>
+            </div>
+        </section>
+
+        <!-- TELA 4: MINHAS VAGAS -->
+        <section id="screen-my-jobs" class="screen">
+            <div style="padding: 24px;">
+                <h2 style="margin-bottom: 20px;">Minhas Candidaturas</h2>
+                <div id="applied-jobs-list" class="jobs-list">
+                    <p style="text-align: center; color: #999; margin-top: 40px;">Você ainda não se candidatou a nada.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- TELA 5: CHAT -->
+        <section id="screen-chat" class="screen" style="padding-bottom:0;">
+            <div style="padding: 20px; background: white; border-bottom: 1px solid #eee; display: flex; align-items: center; gap: 12px;">
+                <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--bg-light); display: flex; align-items: center; justify-content: center;"><i data-lucide="user" size="20"></i></div>
+                <div><h4 style="font-size: 15px;">Suporte Conecterra</h4><span style="font-size: 11px; color: var(--primary-dark);">● Online</span></div>
+            </div>
+            <div class="chat-container" id="chat-box">
+                <div class="msg msg-in">Olá João! Como podemos ajudar você hoje com suas candidaturas?</div>
+                <div class="msg msg-in">Vimos que você se interessou por algumas vagas de colheita. Tem alguma dúvida técnica sobre as fazendas?</div>
+            </div>
+            <div style="padding: 15px; background: white; display: flex; gap: 10px; align-items: center;">
+                <input type="text" id="chat-input" placeholder="Digite sua mensagem..." style="flex:1; padding:12px; border-radius:12px; border:1px solid #eee; outline: none;">
+                <button onclick="sendChatMessage()" style="background: var(--primary); color: white; border: none; width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center;"><i data-lucide="send" size="20"></i></button>
+            </div>
+        </section>
+
+        <!-- TELA 6: PERFIL -->
+        <section id="screen-profile" class="screen">
+            <div class="profile-header" style="padding: 40px 24px 24px; text-align: center;">
+                <div style="width: 100px; height: 100px; margin: 0 auto 16px; border-radius: 30px; background: var(--bg-light); display: flex; align-items: center; justify-content: center;"><i data-lucide="user" size="50"></i></div>
+                <h2 style="font-size: 22px;">João Silva</h2>
+                <p style="color: var(--text-muted); font-size: 14px;">Trabalhador Rural • Londrina, PR</p>
+            </div>
+            
+            <div style="padding: 0 24px;">
+                <div class="profile-section">
+                    <span class="profile-label">Experiência Profissional</span>
+                    <p style="font-size: 14px; font-weight: 600;">Fazenda Santa Maria (2021 - 2023)</p>
+                    <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px;">Auxiliar de Colheita e Operador de Máquinas Leves.</p>
+                    <p style="font-size: 14px; font-weight: 600;">Sítio Recanto Verde (2018 - 2020)</p>
+                    <p style="font-size: 13px; color: var(--text-muted);">Manejo de Gado e Manutenção Geral.</p>
+                </div>
+
+                <div class="profile-section">
+                    <span class="profile-label">Habilidades</span>
+                    <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                        <span style="background: white; padding: 4px 10px; border-radius: 6px; font-size: 12px; border: 1px solid #EEE;">Operação de Trator</span>
+                        <span style="background: white; padding: 4px 10px; border-radius: 6px; font-size: 12px; border: 1px solid #EEE;">Manejo de Gado</span>
+                        <span style="background: white; padding: 4px 10px; border-radius: 6px; font-size: 12px; border: 1px solid #EEE;">Colheita Manual</span>
+                        <span style="background: white; padding: 4px 10px; border-radius: 6px; font-size: 12px; border: 1px solid #EEE;">Aplicação de Insumos</span>
+                    </div>
+                </div>
+
+                <div class="profile-section">
+                    <span class="profile-label">Contato</span>
+                    <div style="display: flex; align-items: center; gap: 10px; font-size: 14px; margin-bottom: 8px;">
+                        <i data-lucide="phone" size="14"></i> (43) 99888-7766
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px; font-size: 14px;">
+                        <i data-lucide="mail" size="14"></i> joao.silva@email.com
+                    </div>
+                </div>
+            </div>
+
+            <div style="padding: 24px;"><button class="btn btn-outline" onclick="navigateTo('screen-login')">Sair da conta</button></div>
+        </section>
+
+        <!-- NAVEGAÇÃO INFERIOR -->
+        <nav id="main-nav" class="bottom-nav" style="display: none;">
+            <div class="nav-item active" onclick="navigateTo('screen-home', this)"><i data-lucide="home"></i><span>Início</span></div>
+            <div class="nav-item" onclick="navigateTo('screen-my-jobs', this)"><i data-lucide="briefcase"></i><span>Vagas</span></div>
+            <div class="nav-item" onclick="navigateTo('screen-chat', this)"><i data-lucide="message-square"></i><span>Chat</span></div>
+            <div class="nav-item" onclick="navigateTo('screen-profile', this)"><i data-lucide="user"></i><span>Perfil</span></div>
+        </nav>
+    </div>
+
+    <script>
+        const jobs = [
+            { 
+                id: 1, 
+                title: 'Colheita de Tomate', 
+                location: 'A 5km de você', 
+                price: 'R$ 120/dia', 
+                dist: 5,
+                desc: 'Buscamos colaboradores para a colheita da safra de tomate industrial. Trabalho em equipe focado em agilidade e cuidado com o fruto.',
+                reqs: ['Experiência anterior em colheita manual', 'Disponibilidade para início imediato', 'Residir na região de Londrina']
+            },
+            { 
+                id: 2, 
+                title: 'Aplicação de Fertilizante', 
+                location: 'A 12km de você', 
+                price: 'R$ 180/dia', 
+                dist: 12,
+                desc: 'Oportunidade para auxiliar na nutrição do solo. Necessário conhecimento básico em misturas e cuidados com EPIs.',
+                reqs: ['Conhecimento em defensivos e fertilizantes', 'Uso obrigatório de EPI', 'Capacidade física para carregar volumes']
+            },
+            { 
+                id: 3, 
+                title: 'Operador de Trator', 
+                location: 'A 8km de você', 
+                price: 'R$ 250/dia', 
+                dist: 8,
+                desc: 'Vaga para operador qualificado para preparo de solo. Máquinas modernas com GPS.',
+                reqs: ['CNH categoria C ou superior', 'Curso de operador de máquinas agrícolas', 'Experiência comprovada em carteira']
+            },
+            { 
+                id: 4, 
+                title: 'Corte de Cana', 
+                location: 'A 20km de você', 
+                price: 'R$ 140/dia', 
+                dist: 20,
+                desc: 'Trabalho sazonal para corte de cana-de-açúcar em regime de produtividade.',
+                reqs: ['Disposição física para trabalho sob sol', 'Experiência com ferramentas de corte', 'Trabalho em regime de metas']
+            }
+        ];
+
+        let myApplications = [];
+        let currentJob = null;
+        let notifs = [];
+
+        function navigateTo(id, el) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            document.getElementById('main-nav').style.display = (id === 'screen-login') ? 'none' : 'flex';
+            if (el) {
+                document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+                el.classList.add('active');
+            }
+            lucide.createIcons();
+        }
+
+        function renderJobs(data) {
+            const container = document.getElementById('home-jobs-container');
+            container.innerHTML = data.map(job => `
+                <div class="job-card" onclick="openDetails(${job.id})">
+                    <div style="display: flex; gap: 12px; margin-bottom: 12px;">
+                        <div style="width: 48px; height: 48px; border-radius: 10px; background: #E8F5E9; display: flex; align-items: center; justify-content: center; color: var(--primary);"><i data-lucide="tractor" size="24"></i></div>
+                        <div><h3 style="font-size: 16px;">${job.title}</h3><p style="font-size: 13px; color: var(--text-muted);">${job.location}</p></div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #F9FAFB; padding-top: 14px;">
+                        <span style="font-weight: 700; color: var(--primary-dark);">${job.price}</span>
+                        <button class="btn btn-primary" style="width:auto; padding: 8px 16px; font-size: 12px;">Detalhes</button>
+                    </div>
+                </div>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        function openDetails(id) {
+            currentJob = jobs.find(j => j.id === id);
+            document.getElementById('det-title').innerText = currentJob.title;
+            document.getElementById('det-loc').innerText = currentJob.location;
+            document.getElementById('det-price').innerText = currentJob.price;
+            document.getElementById('det-desc').innerText = currentJob.desc;
+            
+            // Renderizar Requisitos
+            const reqContainer = document.getElementById('det-reqs');
+            reqContainer.innerHTML = currentJob.reqs.map(r => `
+                <div class="req-item">
+                    <i data-lucide="check-circle-2" size="16" style="color:var(--primary); margin-top:2px;"></i>
+                    <span>${r}</span>
+                </div>
+            `).join('');
+
+            const isApplied = myApplications.find(a => a.id === id);
+            const btn = document.getElementById('btn-candidatar');
+            btn.innerText = isApplied ? 'Candidatura Enviada' : 'Enviar Candidatura';
+            btn.disabled = !!isApplied;
+            btn.style.opacity = isApplied ? '0.6' : '1';
+
+            navigateTo('screen-details');
+        }
+
+        // --- FUNCIONALIDADE: MINHAS VAGAS ---
+        function handleApply() {
+            if (!myApplications.find(a => a.id === currentJob.id)) {
+                // Adiciona com status Pendente
+                const newApp = { ...currentJob, status: 'Pendente' };
+                myApplications.push(newApp);
+                addNotification(`Você se candidatou para ${currentJob.title}`);
+                
+                // Simula Mudança de Status após tempo
+                const jobId = currentJob.id;
+                setTimeout(() => updateStatus(jobId, 'Aprovado'), 5000);
+            }
+            showToast();
+            updateMyJobsUI();
+        }
+
+        function updateStatus(id, newStatus) {
+            const app = myApplications.find(a => a.id === id);
+            if (app) {
+                app.status = newStatus;
+                addNotification(`Status atualizado: ${app.title} agora está ${newStatus}`);
+                updateMyJobsUI();
+            }
+        }
+
+        function updateMyJobsUI() {
+            const container = document.getElementById('applied-jobs-list');
+            if (myApplications.length === 0) return;
+            container.innerHTML = myApplications.map(app => {
+                let color = app.status === 'Pendente' ? '#F59E0B' : (app.status === 'Aprovado' ? '#10B981' : '#EF4444');
+                return `
+                    <div class="job-card" style="border-left: 5px solid ${color}">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div><h4 style="font-size: 15px;">${app.title}</h4><p style="font-size: 12px; color: #999;">${app.location}</p></div>
+                            <span style="font-size: 10px; font-weight: 800; color: ${color}; background: ${color}15; padding: 4px 8px; border-radius: 6px;">${app.status.toUpperCase()}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // --- FUNCIONALIDADE: FILTROS ---
+        function searchJobs() {
+            const term = document.getElementById('main-search').value.toLowerCase();
+            const filtered = jobs.filter(j => j.title.toLowerCase().includes(term));
+            renderJobs(filtered);
+        }
+
+        function applyFilters() {
+            const maxDist = document.getElementById('filter-dist').value;
+            let filtered = jobs;
+            if (maxDist !== 'all') {
+                filtered = jobs.filter(j => j.dist <= parseInt(maxDist));
+            }
+            renderJobs(filtered);
+            closeModal('modal-filter');
+        }
+
+        // --- FUNCIONALIDADE: NOTIFICAÇÕES ---
+        function addNotification(msg) {
+            notifs.unshift({ msg, time: 'Agora' });
+            document.getElementById('notif-dot').style.display = 'block';
+            updateNotifUI();
+        }
+
+        function updateNotifUI() {
+            const container = document.getElementById('notif-list');
+            container.innerHTML = notifs.map(n => `
+                <div style="padding: 12px 0; border-bottom: 1px solid #eee;">
+                    <p style="font-size: 14px; margin-bottom: 4px;">${n.msg}</p>
+                    <span style="font-size: 11px; color: #999;">${n.time}</span>
+                </div>
+            `).join('');
+        }
+
+        // --- FUNCIONALIDADE: CHAT PROLONGADO ---
+        function sendChatMessage() {
+            const input = document.getElementById('chat-input');
+            const box = document.getElementById('chat-box');
+            if (!input.value.trim()) return;
+
+            const userMsg = input.value;
+            box.innerHTML += `<div class="msg msg-out">${userMsg}</div>`;
+            input.value = '';
+            box.scrollTop = box.scrollHeight;
+
+            // Fluxo de resposta prolongada
+            setTimeout(() => {
+                box.innerHTML += `<div class="msg msg-in">Entendi sua dúvida sobre "${userMsg}". Estou consultando os detalhes com o proprietário da Fazenda Santa Maria.</div>`;
+                box.scrollTop = box.scrollHeight;
+                
+                setTimeout(() => {
+                    box.innerHTML += `<div class="msg msg-in">O proprietário informou que o alojamento já está disponível e que o transporte passará na praça central às 6h da manhã.</div>`;
+                    box.scrollTop = box.scrollHeight;
+                    
+                    setTimeout(() => {
+                        box.innerHTML += `<div class="msg msg-in">Isso responde sua questão ou precisa de mais detalhes sobre o pagamento quinzenal?</div>`;
+                        box.scrollTop = box.scrollHeight;
+                        lucide.createIcons();
+                    }, 2000);
+                }, 2000);
+            }, 1500);
+        }
+
+        function openModal(id) {
+            document.getElementById(id).style.display = 'flex';
+            setTimeout(() => document.getElementById(id).classList.add('active'), 10);
+            if (id === 'modal-notif') document.getElementById('notif-dot').style.display = 'none';
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+            setTimeout(() => document.getElementById(id).style.display = 'none', 300);
+        }
+
+        function showToast() {
+            const t = document.getElementById('toast');
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 2500);
+        }
+
+        window.onload = () => { renderJobs(jobs); lucide.createIcons(); };
+    </script>
+</body>
+</html>
